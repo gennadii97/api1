@@ -1,14 +1,12 @@
-from django.shortcuts import render
 from django.db.models import Count
 from rest_framework import generics
 from rest_framework.generics import GenericAPIView, get_object_or_404
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth.models import User
-from rest_framework.viewsets import ModelViewSet
 from datetime import datetime
 from .models import Posts, Like
-from .serializers import PostsSerializer, AnalyticsSerializer
+from .serializers import PostsSerializer
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 
 
@@ -17,15 +15,21 @@ class PostAPIList(generics.ListCreateAPIView):
     serializer_class = PostsSerializer
     permission_classes = (IsAuthenticatedOrReadOnly,)
 
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
 
 class PostAPIUpdate(generics.RetrieveUpdateAPIView):
     queryset = Posts.objects.all()
     serializer_class = PostsSerializer
+    permission_classes = (IsAuthenticatedOrReadOnly,)
 
 
 class PostAPIDestroy(generics.DestroyAPIView):
     queryset = Posts.objects.all()
     serializer_class = PostsSerializer
+    permission_classes = (IsAuthenticated,)
+
 
 
 class PostLikeView(APIView):
@@ -44,7 +48,6 @@ class PostLikeView(APIView):
 
 
 class AnalyticView(GenericAPIView):
-    # permission_classes = (IsAuthenticated,)
     queryset = Like.objects.all()
 
     def get_queryset(self, date_from, date_to):
